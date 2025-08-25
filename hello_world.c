@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <stdio.h>
 
+#ifdef DYNAMIC_BUILD
 static inline HRESULT PreloadLibraries() {
   static const wchar_t* kSystemDLLs[] = {
     L"ADVAPI32.dll",
@@ -66,6 +67,19 @@ static inline HINSTANCE pLLVMInitializeAllTargets() {
 done:
   return hDLL;
 }
+
+#else
+
+static inline HRESULT PreloadLibraries() {
+  return ERROR_SUCCESS;
+}
+
+static inline HINSTANCE pLLVMInitializeAllTargets() {
+  LLVMInitializeAllTargets();
+  return GetModuleHandleW(L"LLVM-C");
+}
+
+#endif // DYNAMIC_BUILD
 
 int main() {
   HRESULT hr = ERROR_SUCCESS;
