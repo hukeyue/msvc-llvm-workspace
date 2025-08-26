@@ -48,7 +48,7 @@ check_library_exists("${LLVM_C_LIBRARY}" LLVMGetSectionName
   "Section Exists" HAVE_LLVM_SECTION_NAME)
 check_library_exists("${LLVM_C_LIBRARY}" LLVMGetSections
   "Sections Exist" HAVE_LLVM_SECTIONS)
-check_library_exists("${LLVM_C_LIBRARY}" LLVMGetCreateObjectFile
+check_library_exists("${LLVM_C_LIBRARY}" LLVMCreateObjectFile
   "Object Factory Exist" HAVE_LLVM_CREATE_OBJECT_FILE)
 check_library_exists("${LLVM_C_LIBRARY}" LLVMOrcCreateNewThreadSafeContext
   "JIT RCU Thread Exist" HAVE_LLVM_ORC_CREATE_NEW_THREAD_CONTAINER)
@@ -61,13 +61,13 @@ check_library_exists("${LLVM_C_LIBRARY}" LLVMCreateDisasmCPUFeatures
 check_library_exists("${LLVM_C_LIBRARY}" LLVMGetComdat
   "Comdat Module" HAVE_LLVM_COMDAT_GETTER)
 check_library_exists("${LLVM_C_LIBRARY}" LLVMStripModuleDebugInfo
-  "GNU Strip Tool" HAVE_LLVM_HAVE_STRIP)
+  "GNU Strip Tool" HAVE_LLVM_HAVE_GNU_STRIP)
 check_library_exists("${LLVM_C_LIBRARY}" LLVMGetTargetMachineCPU
   "Loose CPU Detecter" HAVE_LLVM_HAVE_CPU_GETTER)
 check_library_exists("${LLVM_C_LIBRARY}" LLVMRecompileAndRelinkFunction
   "Heavy CPU Detecter" HAVE_LLVM_RECOMPILE_AND_RELINK_FX)
 check_library_exists("${LLVM_C_LIBRARY}" LLVMInitializeX86Target
-  "Empty CPU Detecter" HAVE_LLVM_X86_INITIALIZER)
+  "Compile-Ahead-Time CPU Detecter" HAVE_LLVM_X86_INITIALIZER)
 if (NOT HAVE_LLVM_X86_INITIALIZER)
   message(FATAL_ERROR "At Least X86 Target should be included")
 endif()
@@ -138,13 +138,50 @@ set(CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES} ${LLVM_INCLUDE_PATH}")
 set(CMAKE_REQUIRED_LINK_DIRECTORIES "${CMAKE_REQUIRED_LINK_DIRECTORIES} ${LLVM_LIB_PATH}")
 set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES} ${LLVM_C_LIBRARY}")
 check_c_source_compiles ("
+#include <windows.h>
+extern void LLVMSetVolatile(void*, BOOL);
+extern void LLVMSetWeak(void*, BOOL);
+extern void LLVMSetOrdering(void*, BOOL);
+int main() {
+  LLVMSetVolatile(NULL, TRUE);
+  LLVMSetWeak(NULL, TRUE);
+  LLVMSetOrdering(NULL, TRUE);
+  return 0;
+}
+" HAVE_LLVM_SET_VOLATILE_WEAK_ORDERING)
+check_c_source_compiles ("
+#include <stdlib.h>
+extern void* LLVMSetGC(void*, const char*);
+int main() {
+  LLVMSetGC(NULL, \"mark-and-sweep\");
+  return 0;
+}
+" HAVE_LLVM_SET_GARBAGE_COLLECTION)
+check_c_source_compiles ("
+#include <windows.h>
+#include <stdlib.h>
+extern void* LLVMSetTailCall(void*, BOOL);
+int main() {
+  LLVMSetTailCall(NULL, TRUE);
+  return 0;
+}
+" HAVE_LLVM_SET_TAIL_CALL)
+check_c_source_compiles ("
+#include <stdlib.h>
+extern void* LLVMSetAlignment(void*, unsigned);
+int main() {
+  LLVMSetAlignment(NULL, 4);
+  return 0;
+}
+" HAVE_LLVM_SET_ALIGNMENT)
+check_c_source_compiles ("
 #include <stdlib.h>
 extern void* LLVMGetSectionAddress(void*);
 int main() {
   LLVMGetSectionAddress(NULL);
   return 0;
 }
-" HAVE_LLVM_SECTION_ADDRESS)
+" HAVE_LLVM_HAVE_GET_SECTION_ADDRESS)
 check_c_source_compiles ("
 #include <windows.h>
 #include <llvm-c/Core.h>
@@ -156,7 +193,15 @@ int main() {
   return ioz.LowPart;
 }
 " HAVE_LLVM_ATOMIC_LARGE_INTEGER_WINNT)
+check_symbol_exists("LLVMSetIsDisjoint" "llvm-c/Core.h" HAVE_LLVM_IS_DISJOINT)
+check_symbol_exists("LLVMSetCleanup" "llvm-c/Core.h" HAVE_LLVM_CLEANUP)
+check_symbol_exists("LLVMSetCondition" "llvm-c/Core.h" HAVE_LLVM_CONDITION)
+check_symbol_exists("LLVMSetSuccessor" "llvm-c/Core.h" HAVE_LLVM_SUCCESSOR)
 check_symbol_exists("LLVMGetPoison" "llvm-c/Core.h" HAVE_LLVM_POISON)
+check_symbol_exists("LLVMSetExact" "llvm-c/Core.h" HAVE_LLVM_EXACT)
+check_symbol_exists("LLVMSetNUW" "llvm-c/Core.h" HAVE_LLVM_NUW)
+check_symbol_exists("LLVMSetNSW" "llvm-c/Core.h" HAVE_LLVM_NSW)
+check_symbol_exists("LLVMSetMetadata" "llvm-c/Core.h" HAVE_LLVM_METADATA)
 
 ### INBED EXECUTOR (cc1)
 add_executable(hello_world hello_world.c)
