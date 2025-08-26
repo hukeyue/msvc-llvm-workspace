@@ -27,25 +27,34 @@ function yield_heavy()
   sync
 }
 
-echo "$(date +%s) "'[STANDBY] Connecting to Command Line Manager of LLVM Libraries ...'
+echo "\033[38;5;046m$(date +%s) \033[38;5;201m[STANDBY]\033[38;5;231m\tConnecting to \033[38;5;014mCommand Line\033[38;5;231m Manager of \033[38;5;159mLLVM\033[38;5;231m Libraries...\033[38;5;046m"
 yield
 
-echo "$(date +%s) "'[HIT] Locating LLVM Static Libraries... (00.00%)'
+echo "\033[38;5;046m$(date +%s) \033[38;5;221m[HIT]\033[38;5;231m\tLocating \033[38;5;159mLLVM\033[38;5;231m Static Libraries...\t\t(00.00%)\033[38;5;046m"
 yield_heavy
+printf "\033[38;5;157m"
 curl -o LLVM-C.dll -L -C - "${REMOTE_SITE_URL}/LLVM-C.dll"
+printf "\033[38;5;146m"
 yield
-echo "$(date +%s) "'[HIT] Locating LLVM Static Libraries... (99.98%)'
+echo "\033[38;5;046m$(date +%s) \033[38;5;221m[HIT]\033[38;5;231m\tLocating \033[38;5;159mLLVM\033[38;5;231m Static Libraries...\t\t(99.98%)\033[38;5;046m"
 yield_heavy
+printf "\033[38;5;157m"
 curl -o LLVM-C.lib -L -C - "${REMOTE_SITE_URL}/LLVM-C.lib"
+printf "\033[38;5;146m"
 yield
-echo "$(date +%s) "'[PASS] Located LLVM Static Libraries - 100.00%'
+echo "\033[38;5;046m$(date +%s) \033[38;5;009m[PASS]\033[38;5;231m\tLocated \033[38;5;159mLLVM\033[38;5;231m Static Libraries\t\t-\t100.00%\033[38;5;046m"
 yield_heavy
 
 echo '  % Current Average ----------- SITE RELOCATOR REFRESHED --------------------- '
+printf "\033[38;5;146m"
 curl -L -C - "${REMOTE_SITE_URL}/MD5SUM" | grep LLVM-C | md5sum -c -
+printf "\033[38;5;046m"
 yield
-echo "$(date +%s) "'[HIT] Refreshing LLVM Libraries Over The Air (97%)'
+echo "\033[38;5;046m$(date +%s) \033[38;5;221m[HIT]\033[38;5;231m\tRefreshing \033[38;5;159mLLVM\033[38;5;231m Libraries...\t\tOverTheAir(97%)\033[38;5;046m"
 yield
-echo "$(date +%s) "'[PASS] LLVM Libraries Refreshed (OTA) - 100.00%'
+echo "\033[38;5;046m$(date +%s) \033[38;5;009m[PASS]\033[38;5;231m\t\033[38;5;159mLLVM\033[38;5;231m Libraries Refreshed (OTA)\t\t-\t100.00%\033[38;5;046m"
 yield_heavy
 echo '  % Time Time Time ----------- SITE RELOCATOR EXPIRED ------------------- Speed'
+yield
+echo "\033[38;5;046m$(date +%s) \033[38;5;201m[STANDBY]\033[38;5;231m\tSyncing to local disk ARRAY (DUMMY)...\033[38;5;046m"
+yield_heavy
