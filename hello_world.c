@@ -75,7 +75,12 @@ static inline HRESULT PreloadLibraries() {
 }
 
 static inline HINSTANCE pLLVMInitializeAllTargets() {
-  LLVMInitializeAllTargets();
+#define LLVM_TARGET(TargetName) \
+  LLVMInitialize##TargetName##Target(); \
+  fprintf(stdout, #TargetName " Target Initialized\n");
+#include "llvm/Config/Targets.def"
+#undef LLVM_TARGET
+  fflush(stdout);
   return GetModuleHandleW(L"LLVM-C");
 }
 
@@ -95,6 +100,8 @@ int main() {
     hr = ERROR_DELAY_LOAD_FAILED;
     goto failure_handler;
   }
+
+  return 0;
 
 failure_handler:
   fprintf(stderr, "FATAL: Load Library Failure\n");
