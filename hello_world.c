@@ -5,7 +5,47 @@
 #include <windows.h>
 #include <stdio.h>
 
-#ifdef DYNAMIC_BUILD
+static inline void HookInCompileTime() {
+#ifndef DYNAMIC_BUILD
+  /* Operations on integer types */
+  (void)LLVMVoidType();
+  (void)LLVMInt1Type();
+  (void)LLVMInt8Type();
+  (void)LLVMInt16Type();
+  (void)LLVMInt32Type();
+  (void)LLVMInt64Type();
+  // (void)LLVMCreateIntegerType()
+  /* AVAILABLE IN FUTURE: (void)LLVMInt128Type(); */
+
+  /* Operations on real types */
+  /* AVAILABLE IN FUTURE: (void)LLVMHalfType(); */
+  /* AVAILABLE IN FUTURE: (void)LLVMBFloatType(); */
+  (void)LLVMFloatType();
+  (void)LLVMDoubleType();
+  (void)LLVMX86FP80Type();
+  (void)LLVMFP128Type();
+  (void)LLVMPPCFP128Type();
+
+  /* Operations on function types */
+  // (void)LLVMCreateFunctionType()
+  // (void)LLVMGetFunctionReturnType()
+
+  /* Operations on struct types */
+  // (void)LLVMCreateStructType()
+
+  /* Operations on array, pointer, and vector types (sequence types) */
+  // (void)LLVMCreateArrayType()
+  // (void)LLVMCreatePointerType()
+  // (void)LLVMCreateVectorType()
+  // (void)LLVMGetElementType()
+
+  /* Operations on other types */
+  (void)LLVMVoidType();
+  (void)LLVMLabelType();
+  // (void)LLVMCreateOpaqueType();
+#endif
+}
+
 static inline HRESULT PreloadLibraries() {
   static const wchar_t* kSystemDLLs[] = {
     L"ADVAPI32.dll",
@@ -18,14 +58,22 @@ static inline HRESULT PreloadLibraries() {
   HINSTANCE hDLL;
 
   for (DWORD i = 0; i < sizeof(kSystemDLLs) / sizeof(kSystemDLLs[0]); ++ i) {
+#ifdef DYNAMIC_BUILD
     hDLL = LoadLibraryExW(kSystemDLLs[i], NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+#else
+    hDLL = GetModuleHandleW(kSystemDLLs[i]);
+#endif
     if (hDLL == NULL) {
       return ERROR_DELAY_LOAD_FAILED;
     }
   }
 
   for (DWORD i = 0; i < sizeof(kRuntimeDLLs) / sizeof(kRuntimeDLLs[0]); ++ i) {
+#ifdef DYNAMIC_BUILD
     hDLL = LoadLibraryExW(kRuntimeDLLs[i], NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR);
+#else
+    hDLL = GetModuleHandleW(kRuntimeDLLs[i]);
+#endif
     if (hDLL == NULL) {
       hDLL = LoadLibraryExW(kRuntimeDLLs[i], NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
       if (hDLL == NULL) {
@@ -39,64 +87,55 @@ static inline HRESULT PreloadLibraries() {
 /** LLVMInitializeAllTargets - The main program should call this function if it
     wants to link in all available targets that LLVM is configured to
     support. */
-static inline HINSTANCE pLLVMInitializeAllTargets() {
+static inline HINSTANCE PreLLVMInitializeAllTargets() {
   HINSTANCE hDLL;
 
 #define LLVM_TARGET(TargetName) \
   typedef typeof(&LLVMInitialize##TargetName##Target) PFNLLVMInitialize##TargetName##Target; \
-  PFNLLVMInitialize##TargetName##Target pLLVMInitialize##TargetName##Target = NULL;
+  PFNLLVMInitialize##TargetName##Target PreLLVMInitialize##TargetName##Target = NULL;
 #include "llvm/Config/Targets.def"
 #undef LLVM_TARGET
 
+#ifdef DYNAMIC_BUILD
   hDLL = LoadLibraryExW(L"LLVM-C.dll", NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR);
+#else
+  hDLL = GetModuleHandleW(L"LLVM-C");
+#endif
 
   if (hDLL == NULL) {
     goto done;
   }
 
 #define LLVM_TARGET(TargetName) \
-  pLLVMInitialize##TargetName##Target = (PFNLLVMInitialize##TargetName##Target)GetProcAddress(hDLL, "LLVMInitialize" #TargetName "Target"); \
-  if (pLLVMInitialize##TargetName##Target != NULL) { \
-    pLLVMInitialize##TargetName##Target(); \
-    fprintf(stdout, #TargetName " Target Initialized\n"); \
+  PreLLVMInitialize##TargetName##Target = (PFNLLVMInitialize##TargetName##Target)GetProcAddress(hDLL, "LLVMInitialize" #TargetName "Target"); \
+  if (PreLLVMInitialize##TargetName##Target != NULL) { \
+    PreLLVMInitialize##TargetName##Target(); \
+    fprintf(stdout, "Target " #TargetName " was initialized\n"); \
+  } else { \
+    fprintf(stdout, "Target " #TargetName " was requested but in vacuum\n"); \
   }
 #include "llvm/Config/Targets.def"
 #undef LLVM_TARGET
 
-  fflush(stdout);
-
 done:
+  fflush(stdout);
   return hDLL;
 }
-
-#else
-
-static inline HRESULT PreloadLibraries() {
-  return ERROR_SUCCESS;
-}
-
-static inline HINSTANCE pLLVMInitializeAllTargets() {
-#define LLVM_TARGET(TargetName) \
-  LLVMInitialize##TargetName##Target(); \
-  fprintf(stdout, #TargetName " Target Initialized\n");
-#include "llvm/Config/Targets.def"
-#undef LLVM_TARGET
-  fflush(stdout);
-  return GetModuleHandleW(L"LLVM-C");
-}
-
-#endif // DYNAMIC_BUILD
 
 int main() {
   HRESULT hr = ERROR_SUCCESS;
   HINSTANCE hDLL;
+
+  /* hook on static build, available since year 2007,
+   * aka llvm 2.2.0 (76a0374b252c2) */
+  HookInCompileTime();
 
   hr = PreloadLibraries();
   if (hr != ERROR_SUCCESS) {
     goto failure_handler;
   }
 
-  hDLL = pLLVMInitializeAllTargets();
+  hDLL = PreLLVMInitializeAllTargets();
   if (hDLL == NULL) {
     hr = ERROR_DELAY_LOAD_FAILED;
     goto failure_handler;
