@@ -27,6 +27,7 @@ function yield_heavy
   sync
 }
 
+printf "\033[48;5;16m]"
 printf "\033[38;5;046m$(date +%s) \033[38;5;201m[STANDBY]\033[38;5;231m\tConnecting to \033[38;5;014mCommand Line\033[38;5;231m Manager of \033[38;5;159mLLVM\033[38;5;231m Libraries...\033[38;5;046m\n"
 yield
 
@@ -58,3 +59,4 @@ printf '  %% Time Time Time ----------- SITE RELOCATOR EXPIRED -----------------
 yield
 printf "\033[38;5;046m$(date +%s) \033[38;5;201m[STANDBY]\033[38;5;231m\tSyncing to local disk ARRAY (DUMMY)...\033[38;5;046m\n"
 yield_heavy
+printf "\033[48;5;16m]"
