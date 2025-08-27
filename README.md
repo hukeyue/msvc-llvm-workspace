@@ -33,7 +33,7 @@ hello_world
 ## 注意事项
 
 - 确保 LLVM-C.dll 和其它必要的 DLL 在应用程序目录或系统路径中。
-- 这个示例只适用于 Windows 平台，因为它使用了 Windows 特定的 API 如 LoadLibraryExW 和 GetProcAddress。
+- 这个示例只适用于 Windows 平台，因为它使用了 Windows 特定的 API 如 `LoadLibraryExW` 和 `GetProcAddress`。
 
 ## 许可证
 
