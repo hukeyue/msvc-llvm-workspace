@@ -6,3 +6,8 @@ build
 *.bz2
 *.xz
 *.zst
+*.o
+*.obj
+*.a
+*.lib
+*.so

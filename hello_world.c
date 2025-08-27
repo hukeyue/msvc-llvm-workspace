@@ -88,13 +88,13 @@ static inline HRESULT PreloadLibraries() {
     wants to link in all available targets that LLVM is configured to
     support. */
 static inline HINSTANCE PreLLVMInitializeAllTargets() {
-  HINSTANCE hDLL;
-
 #define LLVM_TARGET(TargetName) \
-  typedef typeof(&LLVMInitialize##TargetName##Target) PFNLLVMInitialize##TargetName##Target; \
+  typedef __typeof__(&LLVMInitialize##TargetName##Target) PFNLLVMInitialize##TargetName##Target; \
   PFNLLVMInitialize##TargetName##Target PreLLVMInitialize##TargetName##Target = NULL;
 #include "llvm/Config/Targets.def"
 #undef LLVM_TARGET
+
+  HINSTANCE hDLL;
 
 #ifdef DYNAMIC_BUILD
   hDLL = LoadLibraryExW(L"LLVM-C.dll", NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR);
