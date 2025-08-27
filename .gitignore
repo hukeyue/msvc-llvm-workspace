@@ -1,7 +1,7 @@
 *.dll
 *.exe
 *.lib
-build
+/build*
 *.gz
 *.bz2
 *.xz

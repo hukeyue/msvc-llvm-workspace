@@ -19,6 +19,9 @@ option(DYNAMIC_BUILD "Replace inplace kernel space's DLL Loader" OFF)
 
 ### SANITIY CHECK AFTER BOOT (AMI)
 
+if (MSVC)
+	set(CMAKE_GENERATOR_CC cl)
+endif()
 if (WIN32 AND NOT MSVC)
 	message(FATAL_ERROR "Only MSVC build is permitted")
 endif()
@@ -208,4 +211,4 @@ add_executable(hello_world hello_world.c)
 target_link_libraries(hello_world ${LLVM_C_LIBRARY})
 
 ### POST STAGE (Linkage)
-# .dummy
+# stale
