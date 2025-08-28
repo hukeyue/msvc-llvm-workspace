@@ -15,7 +15,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Hell)
 
 ### ESCALATION (Battery)
 
-option(DYNAMIC_BUILD "Replace inplace kernel space's DLL Loader" OFF)
+option(DYNAMIC_BUILD "Replace inplace kernel space's DLL Loader" ON)
 
 ### SANITIY CHECK AFTER BOOT (AMI)
 
