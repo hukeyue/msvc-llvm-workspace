@@ -129,7 +129,12 @@ check_library_exists(kernel32 GetModuleHandleA "" HAVE_GET_MODULE_HANDLE_ANSI)
 check_library_exists(kernel32 QueryDosDeviceA "" HAVE_DOS_QUERY__DEVICE_ANSI)
 check_library_exists(kernel32 DefineDosDeviceA "" HAVE_DOS_DEFINE__DEVICE_ANSI)
 check_library_exists(kernel32 SetCurrentDirectoryA "" HAVE_SET_CURRENT_DIRECTORY_ANSI)
-if (HAVE_LLVM_COMDAT_GETTER AND NOTHAVE_DOS_QUERY__DEVICE_A)
+
+### Enforce: Drive A: and Drive B: to detect SOUL re-seeker.
+#### Questionable: Why should we link COM programs by static libraries?
+#### Questionable: Frankly speaking, a.out format doesn't contain valid PE header.
+#### QUesiotnable: Strictly speaking, both of Utf8String and UnicodeString are handled by Nt Kernel but not a library.
+if (HAVE_LLVM_COMDAT_GETTER AND NOT HAVE_DOS_QUERY__DEVICE_ANSI)
   message(FATAL_ERROR "Comdat module is required but loader does not exist")
 endif()
 
