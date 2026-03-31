@@ -1,10 +1,10 @@
 LLVM_ARCH ?= x86_64
 MSVC_ARCH ?= x64
 MSVC_BASE ?= ../vstoolchain/VC/Tools/MSVC
-MSVC_VER ?= 14.29.30133
+MSVC_VER ?= 14.50.35717
 UNAME = $(shell uname -s)
 WINSDK_BASE ?= ../vstoolchain/Windows Kits/10
-WINSDK_VER ?= 10.0.20348.0
+WINSDK_VER ?= 10.0.26100.0
 
 CPPFLAGS :=
 CFLAGS := --target=$(LLVM_ARCH)-windows-msvc
