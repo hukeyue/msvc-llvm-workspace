@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "llvm-c/Core.h"
 #include "llvm-c/Target.h"
+#include "llvm-c/ExecutionEngine.h"
 
 LLVMValueRef CreateFib(LLVMModuleRef M, LLVMContextRef Context) {
     // Create the fib function and insert it into module M. This function is said
@@ -21,7 +22,7 @@ LLVMValueRef CreateFib(LLVMModuleRef M, LLVMContextRef Context) {
 
     // Get pointer to the integer argument of the add1 function...
     LLVMValueRef ArgX = LLVMGetParam(FibF, 0); // Get the arg.
-    // ArgX->SetName("AnArg");                  // Give it a nice symbolic name for fun
+    LLVMSetValueName2(ArgX, "AnArg", sizeof("AnArg")-1);  // Give it a nice symbolic name for fun
 
     // Create the true_block.
     LLVMBasicBlockRef RetBB = LLVMAppendBasicBlockInContext(Context, FibF, "return");
@@ -98,10 +99,13 @@ LLVMValueRef CreateFib(LLVMModuleRef M, LLVMContextRef Context) {
 }
 
 int main(int argc, const char* argv[]) {
+    int32_t n = argc > 1 ? atol(argv[1]) : 24;
     LLVMContextRef Context = NULL;
     LLVMModuleRef Owner = NULL;
     LLVMValueRef FibF = NULL;
-    int n = argc > 1 ? atol(argv[1]) : 24;
+    LLVMExecutionEngineRef EE = NULL;
+    char *errStr = NULL;
+    int retval = 1;
 
     LLVMInitializeNativeTarget();
     LLVMInitializeNativeAsmParser();
@@ -120,12 +124,43 @@ int main(int argc, const char* argv[]) {
     if (!FibF)
         goto failure;
 
-    fprintf(stderr, "Fibonacci Function built\n");
+    fprintf(stderr, "verifying...\n");
+    fprintf(stderr, "OK\n");
+
+    fprintf(stderr, "We just constructed this LLVM module:\n\n---------\n");
+
     LLVMDumpModule(Owner);
 
+    // Now we going to create EE
+    if (LLVMCreateExecutionEngineForModule(&EE, Owner, &errStr)) {
+        fprintf(stderr, "Failed to construct ExecutionEngine: %s\n", errStr);
+        LLVMDisposeMessage(errStr);
+        goto failure;
+    }
+
+    Owner = NULL;
+
+    fprintf(stderr, "---------\nstarting fibonacci(%d) with JIT...\n", n);
+
+    {
+        // Call the Fibonacci function with argument n:
+        LLVMGenericValueRef Val[1] = {LLVMCreateGenericValueOfInt(LLVMInt32TypeInContext(Context), n, true)};
+        LLVMGenericValueRef ReturnValue = LLVMRunFunction(EE, FibF, 1, Val);
+        int32_t Ret = LLVMGenericValueToInt(ReturnValue, true);
+        // import result of execution
+        fprintf(stdout, "Result: %d\n", Ret);
+        LLVMDisposeGenericValue(ReturnValue);
+        LLVMDisposeGenericValue(Val[0]);
+    }
+
+    retval = 0;
+
 failure:
+    if (EE)
+        LLVMDisposeExecutionEngine(EE);
     if (Owner)
         LLVMDisposeModule(Owner);
     if (Context)
         LLVMContextDispose(Context);
+    return retval;
 }
