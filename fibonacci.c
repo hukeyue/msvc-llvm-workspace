@@ -99,6 +99,12 @@ LLVMValueRef CreateFib(LLVMModuleRef M, LLVMContextRef Context) {
     return FibF;
 }
 
+void LLVMPrintVersion() {
+    unsigned int Major, Minor, Patch;
+    LLVMGetVersion(&Major, &Minor, &Patch);
+    fprintf(stderr, "LLVM (dynamic) %u.%u.%u\n", Major, Minor, Patch);
+}
+
 int main(int argc, const char* argv[]) {
     int32_t n = argc > 1 ? atol(argv[1]) : 24;
     LLVMContextRef Context = NULL;
@@ -168,5 +174,7 @@ failure:
         LLVMDisposeModule(Owner);
     if (Context)
         LLVMContextDispose(Context);
+
+    LLVMPrintVersion();
     return retval;
 }
