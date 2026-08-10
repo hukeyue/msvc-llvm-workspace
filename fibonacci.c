@@ -1,6 +1,7 @@
 //===--- msvc-llvm-workspace/fibonacci.c - An example use of the LLVM C API -----===//
 #include <stdbool.h>
 #include <stdio.h>
+#include "llvm-c/Analysis.h"
 #include "llvm-c/Core.h"
 #include "llvm-c/Target.h"
 #include "llvm-c/ExecutionEngine.h"
@@ -125,6 +126,11 @@ int main(int argc, const char* argv[]) {
         goto failure;
 
     fprintf(stderr, "verifying...\n");
+    if (LLVMVerifyModule(Owner, LLVMPrintMessageAction, &errStr) == 1) {
+        fprintf(stderr, "Error constructing function! %s\n", errStr);
+        LLVMDisposeMessage(errStr);
+        goto failure;
+    }
     fprintf(stderr, "OK\n");
 
     fprintf(stderr, "We just constructed this LLVM module:\n\n---------\n");
