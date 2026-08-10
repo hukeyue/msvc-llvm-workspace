@@ -7,7 +7,7 @@ WINSDK_BASE ?= ../vstoolchain/Windows Kits/10
 WINSDK_VER ?= 10.0.26100.0
 
 CPPFLAGS :=
-CFLAGS := --target=$(LLVM_ARCH)-windows-msvc -std=c99
+CFLAGS := --target=$(LLVM_ARCH)-windows-msvc -std=c99 -fms-runtime-lib=dll
 LDFLAGS := -fuse-ld=lld
 LIBS :=
 
