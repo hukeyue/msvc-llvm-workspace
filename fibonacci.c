@@ -1,6 +1,7 @@
 //===--- msvc-llvm-workspace/fibonacci.c - An example use of the LLVM C API -----===//
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "llvm-c/Analysis.h"
 #include "llvm-c/Core.h"
 #include "llvm-c/Target.h"
@@ -115,6 +116,7 @@ int main(int argc, const char* argv[]) {
     int retval = 1;
 
     LLVMInitializeNativeTarget();
+    LLVMInitializeNativeAsmPrinter();
     LLVMInitializeNativeAsmParser();
 
     Context = LLVMContextCreate();
@@ -142,6 +144,9 @@ int main(int argc, const char* argv[]) {
     fprintf(stderr, "We just constructed this LLVM module:\n\n---------\n");
 
     LLVMDumpModule(Owner);
+
+    LLVMLinkInMCJIT();
+    LLVMLinkInInterpreter();
 
     // Now we going to create EE
     if (LLVMCreateExecutionEngineForModule(&EE, Owner, &errStr)) {

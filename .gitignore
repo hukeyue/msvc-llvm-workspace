@@ -11,3 +11,5 @@
 *.a
 *.lib
 *.so
+/fibonacci
+/hello_world
