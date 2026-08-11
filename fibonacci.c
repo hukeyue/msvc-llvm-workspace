@@ -133,7 +133,7 @@ int main(int argc, const char* argv[]) {
 
     fprintf(stderr, "verifying...\n");
     if (LLVMVerifyModule(Owner, LLVMPrintMessageAction, &errStr) == 1) {
-        fprintf(stderr, "Error constructing function! %s\n", errStr);
+        fprintf(stderr, "%s: Error constructing function! %s\n", argv[0], errStr);
         LLVMDisposeMessage(errStr);
         goto failure;
     }
@@ -145,7 +145,7 @@ int main(int argc, const char* argv[]) {
 
     // Now we going to create EE
     if (LLVMCreateExecutionEngineForModule(&EE, Owner, &errStr)) {
-        fprintf(stderr, "Failed to construct ExecutionEngine: %s\n", errStr);
+        fprintf(stderr, "%s: Failed to construct ExecutionEngine: %s\n", argv[0], errStr);
         LLVMDisposeMessage(errStr);
         goto failure;
     }
