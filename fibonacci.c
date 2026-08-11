@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "llvm/Config/llvm-config.h"
 #include "llvm-c/Analysis.h"
 #include "llvm-c/Core.h"
 #include "llvm-c/Target.h"
@@ -103,7 +104,7 @@ LLVMValueRef CreateFib(LLVMModuleRef M, LLVMContextRef Context) {
 void LLVMPrintVersion() {
     unsigned int Major, Minor, Patch;
     LLVMGetVersion(&Major, &Minor, &Patch);
-    fprintf(stderr, "LLVM (dynamic) %u.%u.%u\n", Major, Minor, Patch);
+    fprintf(stderr, "LLVM (Compiled) %s (Loaded) %u.%u.%u\n", LLVM_VERSION_STRING, Major, Minor, Patch);
 }
 
 int main(int argc, const char* argv[]) {
