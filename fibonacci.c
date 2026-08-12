@@ -116,9 +116,17 @@ int main(int argc, const char* argv[]) {
     char *errStr = NULL;
     int retval = 1;
 
+#ifdef CROSS_COMPILE
+    LLVMInitializeAllTargetInfos();
+    LLVMInitializeAllTargets();
+    LLVMInitializeAllTargetMCs();
+    LLVMInitializeAllAsmPrinters();
+    LLVMInitializeAllAsmParsers();
+#else
     LLVMInitializeNativeTarget();
     LLVMInitializeNativeAsmPrinter();
     LLVMInitializeNativeAsmParser();
+#endif
 
     Context = LLVMContextCreate();
     if (!Context)
@@ -135,7 +143,7 @@ int main(int argc, const char* argv[]) {
         goto failure;
 
     fprintf(stderr, "verifying...\n");
-    if (LLVMVerifyModule(Owner, LLVMPrintMessageAction, &errStr) == 1) {
+    if (LLVMVerifyModule(Owner, LLVMPrintMessageAction, &errStr) != 0) {
         fprintf(stderr, "%s: Error constructing function! %s\n", argv[0], errStr);
         LLVMDisposeMessage(errStr);
         goto failure;
@@ -150,7 +158,7 @@ int main(int argc, const char* argv[]) {
     LLVMLinkInInterpreter();
 
     // Now we going to create EE
-    if (LLVMCreateExecutionEngineForModule(&EE, Owner, &errStr)) {
+    if (LLVMCreateJITCompilerForModule(&EE, Owner, 2, &errStr) != 0) {
         fprintf(stderr, "%s: Failed to construct ExecutionEngine: %s\n", argv[0], errStr);
         LLVMDisposeMessage(errStr);
         goto failure;

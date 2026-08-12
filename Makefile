@@ -64,6 +64,9 @@ CPPFLAGS += "-I$(WINSDK_BASE)/Include/$(WINSDK_VER)/winrt"
 ifeq ($(UNAME), Linux)
 CPPFLAGS += -Xclang -ivfsoverlay -Xclang "$(WINSDK_BASE)/winsdk_vfs_overlay.yaml"
 endif
+ifeq (,$(findstring MINGW, $(UNAME)))
+CPPFLAGS += -DCROSS_COMPILE=1
+endif
 
 LDFLAGS += "-L$(MSVC_BASE)/$(MSVC_VER)/lib/$(MSVC_ARCH)"
 LDFLAGS += "-L$(WINSDK_BASE)/Lib/$(WINSDK_VER)/ucrt/$(MSVC_ARCH)"
