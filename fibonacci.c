@@ -101,7 +101,7 @@ LLVMValueRef CreateFib(LLVMModuleRef M, LLVMContextRef Context) {
     return FibF;
 }
 
-void LLVMPrintVersion() {
+void LLVMPrintVersion(void) {
     unsigned int Major, Minor, Patch;
     LLVMGetVersion(&Major, &Minor, &Patch);
     fprintf(stderr, "LLVM (Compiled) %s (Loaded) %u.%u.%u\n", LLVM_VERSION_STRING, Major, Minor, Patch);

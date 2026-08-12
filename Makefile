@@ -7,23 +7,23 @@ WINSDK_BASE ?= ../vstoolchain/Windows Kits/10
 WINSDK_VER ?= 10.0.26100.0
 
 CPPFLAGS :=
-CFLAGS := --target=$(LLVM_ARCH)-windows-msvc -std=c99 -fms-runtime-lib=dll
-LDFLAGS := -fuse-ld=lld
+CFLAGS := --target=$(LLVM_ARCH)-windows-msvc /Zc:__STDC__ /MD /TC
+LDFLAGS :=
 LIBS :=
 
 ifneq ($(LLVM_INCLUDE_PATH),)
 	CPPFLAGS += "-I$(LLVM_INCLUDE_PATH)"
 endif
 ifneq ($(LLVM_LIB_PATH),)
-	LIBS += "-L$(LLVM_LIB_PATH)"
+	LIBS += "/LIBPATH:$(LLVM_LIB_PATH)"
 endif
 
-ifndef CLANG_CC
+ifndef CLANG_CL
 	ifdef LLVM_BASE
-		CLANG_CC := $(LLVM_BASE)/bin/clang
+		CLANG_CL := $(LLVM_BASE)/bin/clang-cl
 		LLVM_CONFIG := $(LLVM_BASE)/bin/llvm-config
 	else
-		CLANG_CC := clang
+		CLANG_CL := clang-cl
 		LLVM_CONFIG := llvm-config
 	endif
 	LLVM_INCLUDE_PATH := $(shell $(LLVM_CONFIG) --includedir)
@@ -34,7 +34,7 @@ ifndef CLANG_CC
 		CPPFLAGS += -I$(LLVM_INCLUDE_PATH)
 	endif
 	ifneq ($(LLVM_LIB_PATH),)
-		LIBS += -L$(LLVM_LIB_PATH)
+		LIBS += "/LIBPATH:$(LLVM_LIB_PATH)"
 	endif
 endif
 
@@ -42,10 +42,11 @@ endif
 ifdef DYNAMIC_BUILD
 CPPFLAGS += -DDYNAMIC_BUILD=1
 else
-LIBS += -L. -lLLVM-C
+LIBS += /LIBPATH:. LLVM-C.lib
 endif
 
-CPPFLAGS += -Wall -Wextra -Wno-unused-command-line-argument
+CPPFLAGS += -W4
+CPPFLAGS += -Wno-unused-command-line-argument
 CPPFLAGS += -Wno-unknown-pragmas
 CPPFLAGS += -Wno-int-in-bool-context
 CPPFLAGS += -Wno-msvc-not-found
@@ -68,11 +69,11 @@ ifeq (,$(findstring MINGW, $(UNAME)))
 CPPFLAGS += -DCROSS_COMPILE=1
 endif
 
-LDFLAGS += "-L$(MSVC_BASE)/$(MSVC_VER)/lib/$(MSVC_ARCH)"
-LDFLAGS += "-L$(WINSDK_BASE)/Lib/$(WINSDK_VER)/ucrt/$(MSVC_ARCH)"
-LDFLAGS += "-L$(WINSDK_BASE)/Lib/$(WINSDK_VER)/um/$(MSVC_ARCH)"
+LDFLAGS += "/LIBPATH:$(MSVC_BASE)/$(MSVC_VER)/lib/$(MSVC_ARCH)"
+LDFLAGS += "/LIBPATH:$(WINSDK_BASE)/Lib/$(WINSDK_VER)/ucrt/$(MSVC_ARCH)"
+LDFLAGS += "/LIBPATH:$(WINSDK_BASE)/Lib/$(WINSDK_VER)/um/$(MSVC_ARCH)"
 ifeq ($(UNAME), Linux)
-LDFLAGS += "-L../vstoolchain/winsdk_lib_symlinks_$(MSVC_ARCH)"
+LDFLAGS += "/LIBPATH:../vstoolchain/winsdk_lib_symlinks_$(MSVC_ARCH)"
 endif
 
 SRC := $(wildcard *.c)
@@ -83,7 +84,7 @@ DST := $(SRC:.c=.exe)
 all: $(DST)
 
 %.exe: %.c
-	$(CLANG_CC) -o $@ $^ $(CPPFLAGS) $(CFLAGS) $(LIBS) $(LDFLAGS)
+	$(CLANG_CL) -o $@ $^ $(CPPFLAGS) $(CFLAGS) -fuse-ld=lld /link $(LIBS) $(LDFLAGS)
 
 clean:
 	-rm -f $(DST)
