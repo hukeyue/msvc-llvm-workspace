@@ -11,6 +11,7 @@ endif
 LLVM_INCLUDE_PATH := $(shell $(LLVM_CONFIG) --includedir)
 LLVM_LIB_PATH := $(shell $(LLVM_CONFIG) --libdir)
 LLVM_LIBS := $(shell $(LLVM_CONFIG) --libs)
+LLVM_LIBS += $(shell $(LLVM_CONFIG) --system-libs)
 CPPFLAGS += $(shell $(LLVM_CONFIG) --cppflags)
 
 ifneq ($(LLVM_INCLUDE_PATH),)
@@ -21,7 +22,7 @@ ifneq ($(LLVM_LIBS),)
 	LIBS += $(LLVM_LIBS)
 endif
 
-LIBS += -lc++ -lz -L/opt/homebrew/lib -lzstd
+LIBS += -lc++ -L/opt/homebrew/lib
 
 SRC := $(wildcard *.c)
 DST := $(SRC:.c=)
