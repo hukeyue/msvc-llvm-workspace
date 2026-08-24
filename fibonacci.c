@@ -110,7 +110,7 @@ void LLVMPrintVersion(void) {
 int main(int argc, const char* argv[]) {
     int32_t n = argc > 1 ? atol(argv[1]) : 24;
     LLVMContextRef Context = NULL;
-    LLVMModuleRef Owner = NULL;
+    LLVMModuleRef Owner = NULL, M = NULL;
     LLVMValueRef FibF = NULL;
     LLVMExecutionEngineRef EE = NULL;
     char *errStr = NULL;
@@ -133,7 +133,7 @@ int main(int argc, const char* argv[]) {
         goto failure;
 
     // Create some module to put our function into it.
-    Owner = LLVMModuleCreateWithNameInContext("test", Context);
+    M = Owner = LLVMModuleCreateWithNameInContext("test", Context);
     if (!Owner)
         goto failure;
 
@@ -141,18 +141,6 @@ int main(int argc, const char* argv[]) {
     FibF = CreateFib(Owner, Context);
     if (!FibF)
         goto failure;
-
-    fprintf(stderr, "verifying...\n");
-    if (LLVMVerifyModule(Owner, LLVMPrintMessageAction, &errStr) != 0) {
-        fprintf(stderr, "%s: Error constructing function! %s\n", argv[0], errStr);
-        LLVMDisposeMessage(errStr);
-        goto failure;
-    }
-    fprintf(stderr, "OK\n");
-
-    fprintf(stderr, "We just constructed this LLVM module:\n\n---------\n");
-
-    LLVMDumpModule(Owner);
 
     LLVMLinkInMCJIT();
     LLVMLinkInInterpreter();
@@ -165,6 +153,19 @@ int main(int argc, const char* argv[]) {
     }
 
     Owner = NULL;
+
+    fprintf(stderr, "verifying...\n");
+    if (LLVMVerifyModule(M, LLVMPrintMessageAction, &errStr) != 0) {
+        fprintf(stderr, "%s: Error constructing function! %s\n", argv[0], errStr);
+        LLVMDisposeMessage(errStr);
+        goto failure;
+    }
+
+    fprintf(stderr, "OK\n");
+
+    fprintf(stderr, "We just constructed this LLVM module:\n\n---------\n");
+
+    LLVMDumpModule(M);
 
     fprintf(stderr, "---------\nstarting fibonacci(%d) with JIT...\n", n);
 
