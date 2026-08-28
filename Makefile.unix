@@ -1,0 +1,38 @@
+CPPFLAGS :=
+CFLAGS := -O3 -std=c99
+LDFLAGS :=
+LIBS :=
+
+ifdef LLVM_BASE
+	LLVM_CONFIG := $(LLVM_BASE)/bin/llvm-config
+else
+	LLVM_CONFIG := llvm-config
+endif
+LLVM_INCLUDE_PATH := $(shell $(LLVM_CONFIG) --includedir)
+LLVM_LIB_PATH := $(shell $(LLVM_CONFIG) --libdir)
+LLVM_LIBS := $(shell $(LLVM_CONFIG) --libs)
+LLVM_LIBS += $(shell $(LLVM_CONFIG) --system-libs)
+CPPFLAGS += $(shell $(LLVM_CONFIG) --cppflags)
+
+ifneq ($(LLVM_INCLUDE_PATH),)
+	CPPFLAGS += -I$(LLVM_INCLUDE_PATH)
+endif
+LIBS += -L$(LLVM_LIB_PATH) -Wl,-rpath,$(LLVM_LIB_PATH)
+ifneq ($(LLVM_LIBS),)
+	LIBS += $(LLVM_LIBS)
+endif
+
+LIBS += #-lstdc++
+
+SRC := $(wildcard *.c)
+DST := $(SRC:.c=)
+
+.PHONY: all clean
+
+all: $(DST)
+
+%: %.c
+	$(CC) -o $@ $^ $(CPPFLAGS) $(CFLAGS) $(LIBS) $(LDFLAGS)
+
+clean:
+	-rm -f $(DST)
